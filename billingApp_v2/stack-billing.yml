@@ -1,0 +1,75 @@
+version: '3.8'
+
+services:
+  postgres_db:
+    container_name: postgres
+    image: postgres:16
+    restart: always
+    ports:
+      - 5432:5432
+    volumes:
+      - ./dbfiles:/docker-entrypoint-initdb.d
+      - ./postgres_data:/var/lib/postgresql/data # Monta el script de inicialización
+
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: qwerty
+      POSTGRES_DB: postgres
+    #Indica que la base datos este disponible antes de conectarse al back  
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  #Databse admin service
+  adminer:
+    container_name: adminer
+    image: adminer
+    restart: always
+    depends_on:
+      - postgres_db
+    ports:
+      - 9090:8080
+
+
+  #Billing app backend service
+  billingapp-back:
+    build:
+      context: ./java
+      args:
+        - JAR_FILE=*.jar
+        - DB_PASSWORD=qwerty
+    container_name: billingApp-back
+    environment:
+      - JAVA_OPTS=
+        -Xms256M
+        -Xmx256M
+    depends_on:
+      postgres_db:
+        #Espera hasta que el healthcheck de postgres reporte que este en buen estado antes de conectarse
+        condition: service_healthy
+
+    ports:
+      - 8080:8080
+
+
+  #Billing app frontend service
+  billingapp-front:
+    build:
+      context: ./angular
+    container_name: billingApp-front
+    depends_on:
+      - billingapp-back
+    # rango de puertos para escalar
+    ports:
+      - 80:80
+    deploy:
+      resources:
+        limits:
+          cpus: "0.15"
+          memory: 250M
+        #Recursos dedicados, mantiene los recursos disponibles del host para el contenedor
+        reservations:
+          cpus: "0.1"
+          memory: 128M
