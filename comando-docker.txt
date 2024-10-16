@@ -28,3 +28,12 @@ docker compose -f stack-billing.yml up -d --force-recreate
 
 #Verificar el estado de los contenedores
 docker stats
+
+#Activar docker Swarm
+docker swarm init
+
+#Levantar contenedor con docker swarm 
+docker stack deploy -c stack-billing.yml billing
+
+#Eliminar todos los servicios de docker swarm
+docker stack rm billing
