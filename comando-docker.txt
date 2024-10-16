@@ -1,0 +1,30 @@
+#elimna todos los contenedores activos
+docker rm -f $(docker ps -a -q) 
+
+#eliminar todo la memoria en docker
+docker system prune --all
+
+#elimnar volume en cache
+docker volume prune
+
+#levantar los contenedores registrados en el archivo stack-billing.yml
+docker compose -f stack-billing.yml up -d
+
+#Conectarse al servidor del contenedor por ssh
+docker exec -it nombre_contenedor sh
+
+#Direccionar a la carpeta /tmp (carpeta temporal del contenedor)
+ls -la /tmp
+
+#Obtener el valor de las variables de entorno
+echo $DB_PASSWORD
+qwerty (varlor de DB_PASSWORD)
+
+#Detener el proceso de IIS (port:80)
+iisreset /stop
+
+#Levantar los contenedores con la configuracion de los recursos
+docker compose -f stack-billing.yml up -d --force-recreate
+
+#Verificar el estado de los contenedores
+docker stats
